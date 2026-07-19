@@ -71,11 +71,45 @@ else
 fi
 
 # ---------------------------------------------------------------- auto updates
-say "enabling unattended security upgrades"
+say "enabling fully hands-off updates (incl. auto-reboot)"
+timedatectl set-timezone America/Edmonton
 cat > /etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
 EOF
+cat > /etc/apt/apt.conf.d/52unattended-upgrades-local <<'EOF'
+// hands-off: take -updates and the Docker repo too, reboot when needed
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-updates";
+    "Docker:${distro_codename}";
+};
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "04:30";
+EOF
+systemctl enable --now unattended-upgrades >/dev/null 2>&1
+
+# ---------------------------------------------------------------- docker daemon hygiene
+say "docker: live-restore + capped json logs"
+cat > /etc/docker/daemon.json <<'EOF'
+{
+  "live-restore": true,
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
+}
+EOF
+systemctl reload docker 2>/dev/null || systemctl restart docker
+
+# journald: don't let logs eat the small disk
+mkdir -p /etc/systemd/journald.conf.d
+cat > /etc/systemd/journald.conf.d/size.conf <<'EOF'
+[Journal]
+SystemMaxUse=200M
+EOF
+systemctl restart systemd-journald
 
 # ---------------------------------------------------------------- tor hidden service
 if ! command -v tor >/dev/null; then
