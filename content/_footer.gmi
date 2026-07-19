@@ -2,4 +2,3 @@
 ──────────────────────────────────────────────
 
 Viewed {{counter}} times (last updated {{updated}} · {{hash}})
-=> https://github.com/jclement/owg-fyi built with capsule
