@@ -9,6 +9,7 @@ import (
 	"mime"
 	"os"
 	"path"
+	"time"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -176,36 +177,48 @@ func formatOf(p string) Format {
 
 // ---- front matter -------------------------------------------------------
 
-var fmKeyRe = regexp.MustCompile(`(?m)^(title|date)\s*[:=]\s*(.+)$`)
+var fmKeyRe = regexp.MustCompile(`(?m)^(title|date|header|footer)\s*[:=]\s*(.+)$`)
 
-// stripFrontMatter removes a leading --- ... --- block, returning body and
-// any title/date it declared.
-func stripFrontMatter(src string) (body, title, date string) {
-	body = src
+// frontMatter holds the handful of keys pages may declare.
+type frontMatter struct {
+	Title, Date string
+	NoHeader    bool // header: none
+	NoFooter    bool // footer: none
+}
+
+// stripFrontMatter removes a leading --- ... --- block, returning the body
+// and any recognized keys it declared.
+func stripFrontMatter(src string) (string, frontMatter) {
+	var fm frontMatter
 	if !strings.HasPrefix(src, "---\n") && !strings.HasPrefix(src, "---\r\n") {
-		return body, "", ""
+		return src, fm
 	}
 	rest := src[strings.Index(src, "\n")+1:]
 	end := strings.Index(rest, "\n---")
 	if end < 0 {
-		return body, "", ""
+		return src, fm
 	}
-	fm := rest[:end]
-	body = rest[end+4:]
+	block := rest[:end]
+	body := rest[end+4:]
 	body = strings.TrimPrefix(strings.TrimPrefix(body, "\r"), "\n")
-	for _, m := range fmKeyRe.FindAllStringSubmatch(fm, -1) {
+	for _, m := range fmKeyRe.FindAllStringSubmatch(block, -1) {
 		val := strings.Trim(strings.TrimSpace(m[2]), `"'`)
+		off := val == "none" || val == "off" || val == "false"
 		switch m[1] {
 		case "title":
-			title = val
+			fm.Title = val
 		case "date":
 			if len(val) >= 10 {
 				val = val[:10]
 			}
-			date = val
+			fm.Date = val
+		case "header":
+			fm.NoHeader = off
+		case "footer":
+			fm.NoFooter = off
 		}
 	}
-	return body, title, date
+	return body, fm
 }
 
 // ---- page assembly ------------------------------------------------------
@@ -215,7 +228,7 @@ func (s *Store) page(urlPath, fsPath string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	body, fmTitle, fmDate := stripFrontMatter(string(raw))
+	body, fm := stripFrontMatter(string(raw))
 	fmt2 := formatOf(fsPath)
 	// base dir for relative directives: the page's own directory (a
 	// trailing-slash URL is a directory index, so that IS the directory)
@@ -226,11 +239,11 @@ func (s *Store) page(urlPath, fsPath string) (*Result, error) {
 	body = s.expandDirectives(body, fmt2, baseDir, 0)
 
 	pg := &Page{URLPath: urlPath, Chunks: []Chunk{}}
-	if h := s.nearestAffix(fsPath, "_header"); h != nil {
+	if h := s.nearestAffix(fsPath, "_header"); h != nil && !fm.NoHeader {
 		pg.Chunks = append(pg.Chunks, *h)
 	}
 	pg.Chunks = append(pg.Chunks, Chunk{Src: body, Fmt: fmt2})
-	if f := s.nearestAffix(fsPath, "_footer"); f != nil {
+	if f := s.nearestAffix(fsPath, "_footer"); f != nil && !fm.NoFooter {
 		pg.Chunks = append(pg.Chunks, *f)
 	}
 
@@ -245,18 +258,18 @@ func (s *Store) page(urlPath, fsPath string) (*Result, error) {
 		if key == "" {
 			key = "/"
 		}
-		val := "000000"
+		val := "0"
 		if s.Counter != nil {
-			val = fmt.Sprintf("%06d", s.Counter.Bump(key))
+			val = fmt.Sprintf("%d", s.Counter.Bump(key))
 		}
 		pg.Chunks[i].Src = strings.ReplaceAll(pg.Chunks[i].Src, counterToken, val)
 	}
 
-	pg.Title = fmTitle
+	pg.Title = fm.Title
 	if pg.Title == "" {
 		pg.Title = titleOf(body, fmt2)
 	}
-	pg.Date = fmDate
+	pg.Date = fm.Date
 	if pg.Date == "" {
 		pg.Date = dateFromName(filepath.Base(fsPath))
 	}
@@ -273,7 +286,7 @@ func (s *Store) nearestAffix(fsPath, base string) *Chunk {
 			if exists(p) {
 				raw, err := os.ReadFile(p)
 				if err == nil {
-					body, _, _ := stripFrontMatter(string(raw))
+					body, _ := stripFrontMatter(string(raw))
 					urlDir := "/" + filepath.ToSlash(mustRel(s.Root, dir))
 					if urlDir == "/." {
 						urlDir = "/"
@@ -329,19 +342,28 @@ var (
 	BuildDate = ""
 )
 
-func versionString() string {
-	sha := BuildSHA
-	if len(sha) > 7 {
-		sha = sha[:7]
-	}
-	switch {
-	case sha != "" && BuildDate != "":
-		return sha + " · " + BuildDate
-	case sha != "":
-		return sha
-	default:
+func hashString() string {
+	if BuildSHA == "" {
 		return "dev"
 	}
+	if len(BuildSHA) > 7 {
+		return BuildSHA[:7]
+	}
+	return BuildSHA
+}
+
+func updatedString() string {
+	if t, err := time.Parse("2006-01-02", BuildDate); err == nil {
+		return t.Format("Jan 2, 2006")
+	}
+	return "recently"
+}
+
+func versionString() string {
+	if BuildSHA == "" {
+		return "dev"
+	}
+	return hashString() + " · " + BuildDate
 }
 
 var directiveRe = regexp.MustCompile(`(?m)^\{\{\s*(index|include|random)(?:\s+([^\s}]+))?(?:\s+(\d+))?\s*\}\}\s*$`)
@@ -354,8 +376,10 @@ func (s *Store) expandDirectives(body string, f Format, baseDir string, depth in
 	if depth > maxIncludeDepth {
 		return body
 	}
-	// {{version}} works inline (mid-sentence), unlike the line directives
+	// build-stamp tokens work inline (mid-sentence), unlike line directives
 	body = strings.ReplaceAll(body, "{{version}}", versionString())
+	body = strings.ReplaceAll(body, "{{hash}}", hashString())
+	body = strings.ReplaceAll(body, "{{updated}}", updatedString())
 	return directiveRe.ReplaceAllStringFunc(body, func(m string) string {
 		parts := directiveRe.FindStringSubmatch(m)
 		verb, arg, limStr := parts[1], parts[2], parts[3]
@@ -395,7 +419,7 @@ func (s *Store) expandDirectives(body string, f Format, baseDir string, depth in
 			if err != nil {
 				return fmt.Sprintf("(include %s: not found)", arg)
 			}
-			inner, _, _ := stripFrontMatter(string(raw))
+			inner, _ := stripFrontMatter(string(raw))
 			return s.expandDirectives(inner, f, path.Dir(ref), depth+1)
 		}
 		return m
@@ -445,7 +469,8 @@ func (s *Store) List(urlDir string) []Entry {
 				p := filepath.Join(fsDir, name, idx)
 				if exists(p) {
 					if raw, err := os.ReadFile(p); err == nil {
-						body, t, _ := stripFrontMatter(string(raw))
+						body, sub := stripFrontMatter(string(raw))
+						t := sub.Title
 						if t == "" {
 							t = titleOf(body, formatOf(p))
 						}
@@ -471,7 +496,8 @@ func (s *Store) List(urlDir string) []Entry {
 		if err != nil {
 			continue
 		}
-		body, t, d := stripFrontMatter(string(raw))
+		body, sub := stripFrontMatter(string(raw))
+		t, d := sub.Title, sub.Date
 		if t == "" {
 			t = titleOf(body, formatOf(name))
 		}

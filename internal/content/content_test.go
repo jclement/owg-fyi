@@ -132,6 +132,22 @@ func TestInclude(t *testing.T) {
 	}
 }
 
+func TestHeaderNoneFrontMatter(t *testing.T) {
+	s := testStore(t)
+	p := filepath.Join(s.Root, "bare.gmi")
+	if err := os.WriteFile(p, []byte("---\nheader: none\nfooter: none\n---\n# Bare\n\nbody\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res := open(t, s, "/bare")
+	gt := res.Page.Gemtext()
+	if strings.Contains(gt, "=> / home") || strings.Contains(gt, "footer here") {
+		t.Errorf("chrome not suppressed:\n%s", gt)
+	}
+	if !strings.Contains(gt, "# Bare") {
+		t.Errorf("body missing:\n%s", gt)
+	}
+}
+
 func TestRandomAndVersion(t *testing.T) {
 	s := testStore(t)
 	res := open(t, s, "/tagged")
@@ -156,7 +172,7 @@ func TestCounterKeyedByPage(t *testing.T) {
 		t.Fatal(err)
 	}
 	res := open(t, s, "/about")
-	if gt := res.Page.Gemtext(); !strings.Contains(gt, "views: 000001") {
+	if gt := res.Page.Gemtext(); !strings.Contains(gt, "views: 1") {
 		t.Errorf("counter not rendered:\n%s", gt)
 	}
 	open(t, s, "/about")

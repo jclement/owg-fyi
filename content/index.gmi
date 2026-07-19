@@ -1,3 +1,7 @@
+---
+title: OneWheelGeek
+header: none
+---
 ```banner
  ██████╗ ██╗    ██╗ ██████╗     ███████╗██╗   ██╗██╗
 ██╔═══██╗██║    ██║██╔════╝     ██╔════╝╚██╗ ██╔╝██║
@@ -5,24 +9,34 @@
 ██║   ██║██║███╗██║██║   ██║    ██╔══╝    ╚██╔╝  ██║
 ╚██████╔╝╚███╔███╔╝╚██████╔╝ ██╗██║        ██║   ██║
  ╚═════╝  ╚══╝╚══╝  ╚═════╝  ╚═╝╚═╝        ╚═╝   ╚═╝
+{{random /_taglines.txt}}
 ```
+
 
 # Welcome aboard
 
-Hi, I'm Jeff — also known as OneWheelGeek. Code, wood, unicycles, and self-hosting. This is my capsule: a small, quiet corner of the internet served over both Gemini and the web from one little Go server.
+Hi, I'm Jeff — also known as OneWheelGeek. Code, wood, unicycles, and self-hosting. This is my capsule: a small, quiet corner of the internet served from one little Go server.
 
 No trackers, no JavaScript, no engagement metrics. Just text, links, and the occasional strong opinion about unnecessary cloud dependencies.
 
-## Start here
+## Around the capsule
 
-=> /about Who is this guy?
-=> /projects Things I've built
-=> /contact How to reach me
-=> /links Elsewhere & worth reading
+=> /posts/ 📓 Gemlog — occasional write-ups
+=> /projects 🔧 Projects — things I've built
+=> /about 🙋 About — who is this guy?
+=> /contact 📮 Contact — how to reach me
+=> /links 🔗 Links — elsewhere & worth reading
 => /search 🔍 Search the capsule
 
 ## Recent from the gemlog
 
 {{index /posts 6}}
 
-=> /posts/ → the whole gemlog
+## Other doors
+
+Same content, three ways in. Read it in Lagrange over a campfire, in Firefox at your desk, or through Tor if you're feeling mysterious.
+
+=> gemini://owg.fyi/ ♊ gemini://owg.fyi
+=> https://owg.fyi/ 🌐 https://owg.fyi
+=> http://dixrx7edawrmikl22akanik665bv6yewbmto6khjkqlydgi2ko4uojid.onion/ 🧅 web via tor
+=> gemini://dixrx7edawrmikl22akanik665bv6yewbmto6khjkqlydgi2ko4uojid.onion/ 🧅 gemini via tor
