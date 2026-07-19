@@ -132,7 +132,7 @@ func (s *Server) render(w http.ResponseWriter, status int, title, desc string, b
 		Title: title,
 		Desc:  desc,
 		Host:  s.Cfg.Hostname,
-		Body:  template.HTML(body),
+		Body:  template.HTML(wrapEmoji(body)),
 	})
 }
 

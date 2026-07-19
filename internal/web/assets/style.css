@@ -118,6 +118,9 @@ pre code { background: none; padding: 0; font-size: 1em; }
 
 hr { border: none; border-top: 1px dashed var(--line); margin: 2em 0; }
 
+/* emoji: rendered monochrome to match the terminal aesthetic */
+.e { filter: grayscale(1) contrast(1.05); opacity: 0.75; }
+
 table { border-collapse: collapse; margin: 1em 0; display: block; overflow-x: auto; }
 th, td { border: 1px solid var(--line); padding: 0.35em 0.7em; text-align: left; }
 th { background: var(--pre-bg); }
