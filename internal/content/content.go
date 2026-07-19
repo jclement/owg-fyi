@@ -60,9 +60,15 @@ type Result struct {
 	Location string // RedirectResult
 }
 
+// Bumper increments and returns a per-page hit count ({{counter}}).
+type Bumper interface {
+	Bump(page string) uint64
+}
+
 // Store serves content from a root directory.
 type Store struct {
-	Root string
+	Root    string
+	Counter Bumper // nil renders {{counter}} as 000000
 }
 
 func NewStore(root string) *Store {
@@ -226,6 +232,24 @@ func (s *Store) page(urlPath, fsPath string) (*Result, error) {
 	pg.Chunks = append(pg.Chunks, Chunk{Src: body, Fmt: fmt2})
 	if f := s.nearestAffix(fsPath, "_footer"); f != nil {
 		pg.Chunks = append(pg.Chunks, *f)
+	}
+
+	// {{counter}}: one hit counter per page, shown wherever the token sits
+	// (typically the inherited footer) — keyed by the page, not the footer
+	const counterToken = "{{counter}}"
+	for i := range pg.Chunks {
+		if !strings.Contains(pg.Chunks[i].Src, counterToken) {
+			continue
+		}
+		key := strings.TrimSuffix(urlPath, "/")
+		if key == "" {
+			key = "/"
+		}
+		val := "000000"
+		if s.Counter != nil {
+			val = fmt.Sprintf("%06d", s.Counter.Bump(key))
+		}
+		pg.Chunks[i].Src = strings.ReplaceAll(pg.Chunks[i].Src, counterToken, val)
 	}
 
 	pg.Title = fmTitle

@@ -17,6 +17,7 @@ import (
 	"github.com/jclement/owg-fyi/internal/certutil"
 	"github.com/jclement/owg-fyi/internal/config"
 	"github.com/jclement/owg-fyi/internal/content"
+	"github.com/jclement/owg-fyi/internal/counter"
 	"github.com/jclement/owg-fyi/internal/gmi"
 	"github.com/jclement/owg-fyi/internal/search"
 	"github.com/jclement/owg-fyi/internal/web"
@@ -56,6 +57,7 @@ func main() {
 		"titan", cfg.TitanEnabled)
 
 	store := content.NewStore(cfg.ContentDir)
+	store.Counter = counter.New(cfg.DataDir)
 	idx := search.New(store, searchTTL(cfg))
 
 	geminiCert, err := certutil.LoadOrCreate(cfg.DataDir, cfg.Hostname)

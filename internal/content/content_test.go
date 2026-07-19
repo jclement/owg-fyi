@@ -144,6 +144,31 @@ func TestRandomAndVersion(t *testing.T) {
 	}
 }
 
+type fakeBumper struct{ calls map[string]uint64 }
+
+func (f *fakeBumper) Bump(p string) uint64 { f.calls[p]++; return f.calls[p] }
+
+func TestCounterKeyedByPage(t *testing.T) {
+	s := testStore(t)
+	fb := &fakeBumper{calls: map[string]uint64{}}
+	s.Counter = fb
+	if err := os.WriteFile(filepath.Join(s.Root, "_footer.md"), []byte("views: {{counter}}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	res := open(t, s, "/about")
+	if gt := res.Page.Gemtext(); !strings.Contains(gt, "views: 000001") {
+		t.Errorf("counter not rendered:\n%s", gt)
+	}
+	open(t, s, "/about")
+	if fb.calls["/about"] != 2 {
+		t.Errorf("counter keyed wrong: %v", fb.calls)
+	}
+	open(t, s, "/posts/")
+	if fb.calls["/posts"] != 1 {
+		t.Errorf("dir page key wrong: %v", fb.calls)
+	}
+}
+
 func TestStatic(t *testing.T) {
 	s := testStore(t)
 	res := open(t, s, "/stuff/readme.txt")
