@@ -1,0 +1,10 @@
+# Gemlog
+
+Selected write-ups from the blog, re-cut for the small web: self-hosting, tunnels, home lab, and the occasional cautionary tale. The full illustrated versions live at onewheelgeek.me.
+
+=> https://onewheelgeek.me/ full blog (https)
+=> /posts/feed.xml atom feed
+
+## Posts
+
+{{index}}

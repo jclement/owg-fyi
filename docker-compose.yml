@@ -1,0 +1,44 @@
+# owg.fyi production stack. Lives at /opt/owg on the server.
+# Updates flow: push to main → GitHub Actions builds ghcr image → PullPilot
+# soaks it briefly, rolls it out, and rolls back if the healthcheck fails.
+services:
+  capsule:
+    image: ghcr.io/jclement/owg-fyi:latest
+    container_name: capsule
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "1965:1965"
+    environment:
+      CAPSULE_HOSTNAME: owg.fyi
+      CAPSULE_ACME: "true"
+      CAPSULE_ACME_EMAIL: jeff@owg.me
+    volumes:
+      - capsule-data:/data
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+
+  pullpilot:
+    image: ghcr.io/jclement/pullpilot:stable
+    container_name: pullpilot
+    restart: unless-stopped
+    user: "0:0" # root, to access the docker socket
+    environment:
+      PP_TIMEZONE: America/Edmonton
+      PP_SCHEDULE: "*/30 * * * *" # check twice an hour
+      PP_JITTER: 5m
+      PP_SOAK: 10m # short soak: it's my own image
+      PP_CLEANUP: "true" # small disk — prune old images
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - pullpilot-data:/data
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp]
+
+volumes:
+  capsule-data:
+  pullpilot-data:

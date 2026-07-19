@@ -1,0 +1,22 @@
+[tools]
+go = "1.26"
+
+[tasks.dev]
+description = "Live local server: web http://localhost:8080, gemini://localhost (self-signed)"
+run = "go run . -dev -hostname localhost -content content -data .data"
+
+[tasks.test]
+description = "Run the test suite"
+run = "go test ./..."
+
+[tasks.build]
+description = "Build the capsule binary into bin/"
+run = "go build -trimpath -o bin/capsule ."
+
+[tasks.docker]
+description = "Build the container image locally"
+run = "docker build -t owg-fyi:local ."
+
+[tasks.deploy]
+description = "Ship: push main and let GitHub Actions + PullPilot do the rest"
+run = "git push origin main"

@@ -1,0 +1,12 @@
+
+──────────────────────────────────────────────
+
+=> /posts/ gemlog
+=> /projects projects
+=> /about about
+=> /contact contact
+=> /search 🔍 search
+
+This capsule lives at gemini://owg.fyi and https://owg.fyi — same content, two protocols. Built with capsule, a little Go server that speaks both.
+
+=> https://github.com/jclement/owg-fyi source on github

@@ -1,0 +1,28 @@
+```banner
+ ██████╗ ██╗    ██╗ ██████╗     ███████╗██╗   ██╗██╗
+██╔═══██╗██║    ██║██╔════╝     ██╔════╝╚██╗ ██╔╝██║
+██║   ██║██║ █╗ ██║██║  ███╗    █████╗   ╚████╔╝ ██║
+██║   ██║██║███╗██║██║   ██║    ██╔══╝    ╚██╔╝  ██║
+╚██████╔╝╚███╔███╔╝╚██████╔╝ ██╗██║        ██║   ██║
+ ╚═════╝  ╚══╝╚══╝  ╚═════╝  ╚═╝╚═╝        ╚═╝   ╚═╝
+```
+
+# Welcome aboard
+
+Hi, I'm Jeff — also known as OneWheelGeek. Code, wood, unicycles, and self-hosting. This is my capsule: a small, quiet corner of the internet served over both Gemini and the web from one little Go server.
+
+No trackers, no JavaScript, no engagement metrics. Just text, links, and the occasional strong opinion about unnecessary cloud dependencies.
+
+## Start here
+
+=> /about Who is this guy?
+=> /projects Things I've built
+=> /contact How to reach me
+=> /links Elsewhere & worth reading
+=> /search 🔍 Search the capsule
+
+## Recent from the gemlog
+
+{{index /posts 6}}
+
+=> /posts/ → the whole gemlog
