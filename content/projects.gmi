@@ -1,0 +1,24 @@
+# Projects
+
+Things I've built and actually run. Mostly self-hosted, mostly Go/Elixir, all scratching a real itch.
+
+## Running services
+
+=> https://werdz.ca Werdz — multiplayer definition-bluffing word game
+=> https://mermaidarium.com Mermaidarium — render Mermaid diagrams to images, metadata baked in
+=> https://eventshare.app Eventshare — privacy-respecting calendar event sharing
+=> https://quotes.onewheelgeek.net Quote Hole — collect and vote on your crew's best quotes
+
+## Tools & infrastructure
+
+=> https://github.com/jclement/pullpilot PullPilot — compose-aware Docker auto-updater with soak windows and health-gated rollback. It keeps this very server fresh.
+=> https://github.com/jclement/gatecrash Gatecrash — self-hosted tunnel server; my answer to "do I really need Cloudflare for this?"
+=> https://github.com/jclement/drillbit DrillBit — stop SSH-ing into machines just to poke at your databases
+=> https://github.com/jclement/megaclaude Megaclaude — sandboxed Claude Code in Docker
+=> https://github.com/jclement/owg-fyi capsule — the Gemini + web server rendering this page right now
+
+## Longer write-ups
+
+Most of these have a story behind them — check the gemlog:
+
+=> /posts/ → gemlog

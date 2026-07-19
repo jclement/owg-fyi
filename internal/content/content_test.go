@@ -23,6 +23,8 @@ func testStore(t *testing.T) *Store {
 		"stuff/readme.txt":         "plain text\n",
 		"inc.md":                   "# Inc\n\n{{include /_snip.md}}\n",
 		"_snip.md":                 "snippet-content\n",
+		"tagged.gmi":               "# Tagged\n\n{{random /_tags.txt}}\n\nbuild {{version}}\n",
+		"_tags.txt":                "only-tagline\n",
 	}
 	for name, body := range files {
 		p := filepath.Join(root, filepath.FromSlash(name))
@@ -127,6 +129,18 @@ func TestInclude(t *testing.T) {
 	res := open(t, s, "/inc")
 	if gt := res.Page.Gemtext(); !strings.Contains(gt, "snippet-content") {
 		t.Errorf("include failed:\n%s", gt)
+	}
+}
+
+func TestRandomAndVersion(t *testing.T) {
+	s := testStore(t)
+	res := open(t, s, "/tagged")
+	gt := res.Page.Gemtext()
+	if !strings.Contains(gt, "only-tagline") {
+		t.Errorf("random directive failed:\n%s", gt)
+	}
+	if !strings.Contains(gt, "build dev") {
+		t.Errorf("inline version directive failed:\n%s", gt)
 	}
 }
 

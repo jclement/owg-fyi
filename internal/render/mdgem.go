@@ -68,9 +68,15 @@ func renderBlock(b *strings.Builder, n ast.Node, src []byte, depth int) {
 	case *ast.List:
 		for li := v.FirstChild(); li != nil; li = li.NextSibling() {
 			txt, links := listItemText(li, src)
-			// an item that is nothing but a single link becomes a link line
-			if txt == "" && len(links) == 1 {
-				fmt.Fprintf(b, "=> %s %s\n", links[0].url, links[0].label)
+			// an item containing exactly one link becomes a single link
+			// line labelled with the full item text — never a bullet plus
+			// a duplicate hoisted link
+			if len(links) == 1 {
+				label := txt
+				if label == "" {
+					label = links[0].label
+				}
+				fmt.Fprintf(b, "=> %s %s\n", links[0].url, label)
 				continue
 			}
 			fmt.Fprintf(b, "* %s\n", txt)
@@ -171,8 +177,12 @@ func inlineText(n ast.Node, src []byte) (string, []pendingLink) {
 				links = append(links, pendingLink{url: string(v.Destination), label: alt})
 			case *ast.AutoLink:
 				url := string(v.URL(src))
-				b.WriteString(url)
-				links = append(links, pendingLink{url: url, label: url})
+				label := url
+				if v.AutoLinkType == ast.AutoLinkEmail && !strings.HasPrefix(url, "mailto:") {
+					url = "mailto:" + url
+				}
+				b.WriteString(label)
+				links = append(links, pendingLink{url: url, label: label})
 			case *ast.RawHTML:
 				// skip
 			default:

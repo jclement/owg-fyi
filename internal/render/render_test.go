@@ -12,6 +12,8 @@ Hello *world*, see [my blog](https://example.com/blog) for more.
 
 - plain item
 - [Just A Link](https://example.com/x)
+- [owg.me](https://owg.me) — my link-card hub
+- two [a](https://a.example) and [b](https://b.example) links
 
 ` + "```go\nfmt.Println(\"hi\")\n```" + `
 
@@ -27,6 +29,10 @@ Hello *world*, see [my blog](https://example.com/blog) for more.
 		"=> https://example.com/blog my blog",
 		"* plain item",
 		"=> https://example.com/x Just A Link",
+		"=> https://owg.me owg.me — my link-card hub",
+		"* two a and b links",
+		"=> https://a.example a",
+		"=> https://b.example b",
 		"```go",
 		"fmt.Println(\"hi\")",
 		"> a quote",

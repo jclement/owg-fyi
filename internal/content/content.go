@@ -5,6 +5,7 @@ package content
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"mime"
 	"os"
 	"path"
@@ -297,7 +298,29 @@ func dateFromName(name string) string {
 
 // ---- directives ---------------------------------------------------------
 
-var directiveRe = regexp.MustCompile(`(?m)^\{\{\s*(index|include)(?:\s+([^\s}]+))?(?:\s+(\d+))?\s*\}\}\s*$`)
+// BuildSHA / BuildDate are stamped by the Dockerfile via -ldflags -X; the
+// {{version}} directive renders them (e.g. in a footer).
+var (
+	BuildSHA  = ""
+	BuildDate = ""
+)
+
+func versionString() string {
+	sha := BuildSHA
+	if len(sha) > 7 {
+		sha = sha[:7]
+	}
+	switch {
+	case sha != "" && BuildDate != "":
+		return sha + " · " + BuildDate
+	case sha != "":
+		return sha
+	default:
+		return "dev"
+	}
+}
+
+var directiveRe = regexp.MustCompile(`(?m)^\{\{\s*(index|include|random)(?:\s+([^\s}]+))?(?:\s+(\d+))?\s*\}\}\s*$`)
 
 const maxIncludeDepth = 4
 
@@ -307,6 +330,8 @@ func (s *Store) expandDirectives(body string, f Format, baseDir string, depth in
 	if depth > maxIncludeDepth {
 		return body
 	}
+	// {{version}} works inline (mid-sentence), unlike the line directives
+	body = strings.ReplaceAll(body, "{{version}}", versionString())
 	return directiveRe.ReplaceAllStringFunc(body, func(m string) string {
 		parts := directiveRe.FindStringSubmatch(m)
 		verb, arg, limStr := parts[1], parts[2], parts[3]
@@ -321,6 +346,23 @@ func (s *Store) expandDirectives(body string, f Format, baseDir string, depth in
 				limit, _ = strconv.Atoi(limStr)
 			}
 			return s.renderIndex(dir, f, limit)
+		case "random":
+			// pick one non-empty line from a file: {{random /_taglines.txt}}
+			ref := resolveRef(baseDir, arg)
+			raw, err := os.ReadFile(filepath.Join(s.Root, filepath.FromSlash(strings.TrimPrefix(ref, "/"))))
+			if err != nil {
+				return ""
+			}
+			var lines []string
+			for _, l := range strings.Split(string(raw), "\n") {
+				if l = strings.TrimSpace(l); l != "" {
+					lines = append(lines, l)
+				}
+			}
+			if len(lines) == 0 {
+				return ""
+			}
+			return lines[rand.IntN(len(lines))]
 		case "include":
 			ref := resolveRef(baseDir, arg)
 			rel := strings.TrimPrefix(ref, "/")

@@ -13,6 +13,10 @@ import (
 type Config struct {
 	// Hostname is the canonical hostname (used for TLS certs and URL checks).
 	Hostname string
+	// Onion is the site's Tor hidden-service hostname (x…x.onion). When set,
+	// requests for it are served: plain HTTP on the web listener (Tor is
+	// already end-to-end encrypted) and gemini://<onion>/ on the gemini one.
+	Onion string
 	// ContentDir is the root of the site content tree.
 	ContentDir string
 	// DataDir holds persistent state: ACME cache, generated gemini certs.
@@ -62,6 +66,7 @@ func Load(args []string) (*Config, error) {
 	c := &Config{}
 
 	fs.StringVar(&c.Hostname, "hostname", envStr("CAPSULE_HOSTNAME", "localhost"), "canonical hostname (env CAPSULE_HOSTNAME)")
+	fs.StringVar(&c.Onion, "onion", envStr("CAPSULE_ONION", ""), "tor hidden service hostname (env CAPSULE_ONION)")
 	fs.StringVar(&c.ContentDir, "content", envStr("CAPSULE_CONTENT", "content"), "content directory (env CAPSULE_CONTENT)")
 	fs.StringVar(&c.DataDir, "data", envStr("CAPSULE_DATA", "data"), "data directory for certs/state (env CAPSULE_DATA)")
 	fs.BoolVar(&c.Dev, "dev", envBool("CAPSULE_DEV", false), "dev mode: plain HTTP, no ACME (env CAPSULE_DEV)")

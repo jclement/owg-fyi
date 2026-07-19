@@ -7,6 +7,11 @@
 => /contact contact
 => /search 🔍 search
 
-This capsule lives at gemini://owg.fyi and https://owg.fyi — same content, two protocols. Built with capsule, a little Go server that speaks both.
+This capsule lives at gemini://owg.fyi and https://owg.fyi — same content, two protocols. Also reachable in the dark, if that's your thing:
+
+=> http://dixrx7edawrmikl22akanik665bv6yewbmto6khjkqlydgi2ko4uojid.onion/ 🧅 web via tor
+=> gemini://dixrx7edawrmikl22akanik665bv6yewbmto6khjkqlydgi2ko4uojid.onion/ 🧅 gemini via tor
+
+Built with capsule ({{version}}), a little Go server that speaks both.
 
 => https://github.com/jclement/owg-fyi source on github

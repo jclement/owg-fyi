@@ -12,6 +12,7 @@ services:
       - "1965:1965"
     environment:
       CAPSULE_HOSTNAME: owg.fyi
+      CAPSULE_ONION: dixrx7edawrmikl22akanik665bv6yewbmto6khjkqlydgi2ko4uojid.onion
       CAPSULE_ACME: "true"
       CAPSULE_ACME_EMAIL: jeff@owg.me
     volumes:
@@ -27,9 +28,9 @@ services:
     user: "0:0" # root, to access the docker socket
     environment:
       PP_TIMEZONE: America/Edmonton
-      PP_SCHEDULE: "*/30 * * * *" # check twice an hour
-      PP_JITTER: 5m
-      PP_SOAK: 10m # short soak: it's my own image
+      PP_SCHEDULE: "0 * * * *" # hourly backstop; webhook does the real work
+      PP_SOAK: "0" # instant rollout on poke (health-gate still applies)
+      PP_WEBHOOK: "true" # CI pokes after image push (see build.yml)
       PP_CLEANUP: "true" # small disk — prune old images
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

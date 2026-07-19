@@ -122,7 +122,10 @@ func (s *Server) respondHeader(w io.Writer, status int, meta string) {
 }
 
 func (s *Server) serveGemini(conn net.Conn, u *url.URL) (int, string) {
-	if !strings.EqualFold(u.Hostname(), s.Cfg.Hostname) && !strings.EqualFold(u.Hostname(), "localhost") {
+	host := u.Hostname()
+	allowed := strings.EqualFold(host, s.Cfg.Hostname) || strings.EqualFold(host, "localhost") ||
+		(s.Cfg.Onion != "" && strings.EqualFold(host, s.Cfg.Onion))
+	if !allowed {
 		s.respondHeader(conn, 53, "proxy request refused")
 		return 53, "proxy request refused"
 	}

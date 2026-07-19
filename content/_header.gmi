@@ -1,1 +1,3 @@
 => / owg.fyi 🛞 home
+
+{{random /_taglines.txt}}

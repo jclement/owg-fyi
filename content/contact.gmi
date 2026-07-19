@@ -1,0 +1,20 @@
+# Contact
+
+Single human, several inboxes. Pick your favorite protocol.
+
+=> mailto:jeff@owg.me Email — jeff@owg.me
+=> https://social.onewheelgeek.me/@onewheelgeek Mastodon — @onewheelgeek@social.onewheelgeek.me
+=> https://bsky.app/profile/onewheelgeek.me Bluesky — @onewheelgeek.me
+=> https://t.me/OneWheelGeek Telegram — @OneWheelGeek
+=> https://www.linkedin.com/in/jeff-clement-9311842/ LinkedIn
+=> https://github.com/jclement GitHub — jclement
+
+For Signal and anything requiring proof-of-life, grab the verified links from owg.me — my link hub with the full set.
+
+=> https://owg.me owg.me — the verified link hub
+
+## Encrypted mail
+
+If you want to send something private, my GPG key:
+
+=> /jclement.asc GPG public key (jeff@owg.me)

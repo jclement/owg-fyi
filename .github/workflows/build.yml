@@ -38,12 +38,24 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha,prefix=
+      - name: Build date
+        id: date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ steps.date.outputs.date }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      # Poke PullPilot AFTER the image is in the registry so it re-checks now.
+      - name: Notify PullPilot
+        env:
+          POKE: ${{ secrets.PULLPILOT_POKE_URL }}
+        run: |
+          if [ -n "$POKE" ]; then curl -fsS -X POST "$POKE"; else echo "no poke URL set"; fi

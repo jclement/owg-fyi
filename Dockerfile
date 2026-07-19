@@ -4,7 +4,11 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/capsule .
+ARG GIT_SHA=""
+ARG BUILD_DATE=""
+RUN CGO_ENABLED=0 go build -trimpath \
+    -ldflags="-s -w -X github.com/jclement/owg-fyi/internal/content.BuildSHA=${GIT_SHA} -X github.com/jclement/owg-fyi/internal/content.BuildDate=${BUILD_DATE}" \
+    -o /out/capsule .
 
 FROM alpine:3.22
 RUN apk add --no-cache ca-certificates tzdata && adduser -D -H -u 10001 capsule

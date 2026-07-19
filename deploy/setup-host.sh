@@ -77,6 +77,28 @@ APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
 EOF
 
+# ---------------------------------------------------------------- tor hidden service
+if ! command -v tor >/dev/null; then
+  say "installing tor"
+  apt-get install -y -qq tor >/dev/null
+fi
+if ! grep -q 'HiddenServiceDir /var/lib/tor/owg/' /etc/torrc 2>/dev/null \
+   && ! grep -q 'HiddenServiceDir /var/lib/tor/owg/' /etc/tor/torrc; then
+  say "configuring onion service (80 + 1965)"
+  cat >> /etc/tor/torrc <<'EOF'
+
+HiddenServiceDir /var/lib/tor/owg/
+HiddenServicePort 80 127.0.0.1:80
+HiddenServicePort 1965 127.0.0.1:1965
+EOF
+fi
+systemctl enable --now tor >/dev/null 2>&1
+systemctl restart tor
+sleep 3
+if [ -f /var/lib/tor/owg/hostname ]; then
+  say "onion address: $(cat /var/lib/tor/owg/hostname)"
+fi
+
 # ---------------------------------------------------------------- starship prompt
 if ! command -v starship >/dev/null; then
   say "installing starship prompt"

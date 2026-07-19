@@ -1,0 +1,19 @@
+# Hello, world
+
+Every gemlog needs a first post, and this is mine.
+
+This capsule is brand new — built today, in fact. One small Go server ("capsule") serving the same handful of text files over three doors:
+
+* gemini://owg.fyi — the native experience, best enjoyed in Lagrange
+* https://owg.fyi — same content, one small CSS file, zero JavaScript
+* a Tor onion service, because why not
+
+The content is plain gemtext (with markdown allowed when I'm converting something over from the big-web blog). Posts land here when I have something worth saying about self-hosting, home labs, tunnels, or whatever else I'm currently over-engineering for fun.
+
+If you want the full-color, screenshot-heavy versions of my write-ups, the regular blog is still the place:
+
+=> https://onewheelgeek.me/ onewheelgeek.me
+
+Otherwise — welcome. Pull up a log by the campfire.
+
+=> /posts/ ← back to the gemlog

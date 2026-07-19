@@ -86,6 +86,13 @@ func cacheControl(next http.Handler) http.Handler {
 	})
 }
 
+func stripPort(host string) string {
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		return h
+	}
+	return host
+}
+
 type statusRecorder struct {
 	http.ResponseWriter
 	status int
@@ -243,9 +250,24 @@ func (s *Server) Serve() error {
 			fmt.Fprintln(w, "ok")
 			return
 		}
+		// tor visitors get content straight over the onion (already E2E
+		// encrypted); everyone else is bounced to https
+		if s.Cfg.Onion != "" && strings.EqualFold(stripPort(r.Host), s.Cfg.Onion) {
+			h.ServeHTTP(w, r)
+			return
+		}
 		target := "https://" + s.Cfg.Hostname + r.URL.RequestURI()
 		http.Redirect(w, r, target, http.StatusMovedPermanently)
 	})
+
+	secure := h
+	if s.Cfg.Onion != "" {
+		// advertise the onion mirror (Tor Browser picks this up)
+		secure = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Onion-Location", "http://"+s.Cfg.Onion+r.URL.RequestURI())
+			h.ServeHTTP(w, r)
+		})
+	}
 
 	errCh := make(chan error, 2)
 	go func() {
@@ -255,7 +277,7 @@ func (s *Server) Serve() error {
 	go func() {
 		srv := &http.Server{
 			Addr:      s.Cfg.HTTPSAddr,
-			Handler:   h,
+			Handler:   secure,
 			TLSConfig: &tls.Config{GetCertificate: mgr.GetCertificate, MinVersion: tls.VersionTLS12},
 		}
 		s.Log.Info("web listening (https, lets encrypt)", "addr", s.Cfg.HTTPSAddr, "host", s.Cfg.Hostname)
